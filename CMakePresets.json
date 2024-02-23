@@ -18,41 +18,43 @@
             }
         },
         {
-            "name": "x64-debug",
-            "displayName": "x64 Debug",
+            "name": "x64-debug-winusb",
+            "displayName": "x64 Debug WinUSB",
             "inherits": "windows-base",
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
             },
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_WINUSB_PROGRAM": true
             }
         },
         {
-            "name": "x64-release",
-            "displayName": "x64 Release",
-            "inherits": "x64-debug",
+            "name": "x64-debug-umdf",
+            "displayName": "x64 Debug UMDF",
+            "inherits": "windows-base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_USER_MODE_DRIVER": true
+            }
+        },
+        {
+            "name": "x64-release-winusb",
+            "displayName": "x64 Release WinUSB",
+            "inherits": "x64-debug-winusb",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
-            "name": "x86-debug",
-            "displayName": "x86 Debug",
-            "inherits": "windows-base",
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "x86-release",
-            "displayName": "x86 Release",
-            "inherits": "x86-debug",
+            "name": "x64-release-umdf",
+            "displayName": "x64 Release UMDF",
+            "inherits": "x64-debug-umdf",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }

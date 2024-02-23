@@ -1,8 +1,11 @@
-﻿// usb-performance-panel-universal-driver.cpp: 定义应用程序的入口点。
-//
+﻿/* @file entry.c
 
-#include <entry.h>
+	Implementation of all user-mode programs' entry point.
+	SPDX-License-Identifier: WTFPL
 
+*/
+
+#include <common.h>
 #include <stdio.h>
 
 int main()
