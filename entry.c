@@ -8,8 +8,11 @@
 #include <common.h>
 #include <stdio.h>
 
+#include <platform.h>
 int main()
 {
-	printf("It works!\n");
+	open_device();
+	get_channel_count();
+	close_device();
 	return 0;
 }

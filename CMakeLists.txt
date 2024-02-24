@@ -12,6 +12,7 @@ set(DATA_COLLECTION_SOURCES datasource/collector.c)
 # Data collection selection.
 if(WIN32)
     message ("Use Windows data collection method.")
+    add_definitions("-DUNICODE" "-D_UNICODE")
     list(APPEND DATA_COLLECTION_SOURCES
         datasource/windows/cpu.c
     )
@@ -42,6 +43,7 @@ elseif(${BUILD_WINUSB_PROGRAM})
         entry.c
         platform/winusb.c
     )
+    link_libraries (setupapi.lib winusb.lib)
 else()
     message (FATAL_ERROR "Unsupported platform!")
 endif()

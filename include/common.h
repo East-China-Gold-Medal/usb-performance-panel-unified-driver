@@ -1,6 +1,6 @@
-﻿/* @file entry.h
+﻿/* @file common.h
 
-    Definition of all user-mode programs' entry point.
+    Definition of all user-mode programs' common values.
     SPDX-License-Identifier: WTFPL
 
 */
@@ -8,6 +8,10 @@
 #define ENTRY_H
 
 #include <stdint.h>
+
+#define IN
+#define OUT
+#define OPTIONAL
 
 // USB Control command to send to MCU.
 typedef const enum {
@@ -27,5 +31,12 @@ typedef const enum {
     VOLTMETER_CHANNEL_REPORT_RAW_VALUE = 0x80
 } voltmeter_channel_report_method_t;
 
+// Return statuses.
+typedef const enum {
+    STATUS_SUCCESS = 0,
+    STATUS_DEVICE_NOT_FOUND = -1,
+    STATUS_DEVICE_CONFIGURATION_FAILED = -2,
+    STATUS_TRANSFER_FAILED = -3
+} status_t;
 
 #endif
