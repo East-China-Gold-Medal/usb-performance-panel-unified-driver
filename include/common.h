@@ -32,11 +32,12 @@ typedef const enum {
 } voltmeter_channel_report_method_t;
 
 // Return statuses.
-typedef const enum {
+typedef enum {
     STATUS_SUCCESS = 0,
     STATUS_DEVICE_NOT_FOUND = -1,
     STATUS_DEVICE_CONFIGURATION_FAILED = -2,
-    STATUS_TRANSFER_FAILED = -3
+    STATUS_TRANSFER_FAILED = -3,
+    STATUS_INVALID_CONFIGURATION = -4
 } status_t;
 
 #endif

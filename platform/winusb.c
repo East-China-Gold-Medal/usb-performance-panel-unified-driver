@@ -54,11 +54,11 @@ status_t open_device(void)
             break;
         }
         if (!result) {
-            fprintf(stderr, "Error SetupDiEnumDeviceInterfaces: 0x%x.\n", GetLastError());
+            fprintf(stderr, "Error SetupDiEnumDeviceInterfaces: 0x%lx.\n", GetLastError());
             return STATUS_DEVICE_CONFIGURATION_FAILED;
         }
 
-        int required_length = device_interface_detail_data->cbSize;
+        DWORD required_length = device_interface_detail_data->cbSize;
         result = SetupDiGetDeviceInterfaceDetail(device_info, &device_interface_data, device_interface_detail_data, required_length, &required_length, &device_info_data);
 
         if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
@@ -72,7 +72,7 @@ status_t open_device(void)
         }
 
         if (!result) {
-            fprintf(stderr, "Error SetupDiEnumDeviceInterfaces: 0x%x.\n", GetLastError());
+            fprintf(stderr, "Error SetupDiEnumDeviceInterfaces: 0x%lx.\n", GetLastError());
             return STATUS_DEVICE_CONFIGURATION_FAILED;
         }
 
@@ -100,12 +100,12 @@ status_t open_device(void)
     device_file_handle = CreateFile(device_path, GENERIC_READ | GENERIC_WRITE,
             FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
     if (device_file_handle == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "Open device handle error:0x%x\n.", GetLastError());
+        fprintf(stderr, "Open device handle error:0x%lx\n.", GetLastError());
     }
 
     WinUsb_Initialize(device_file_handle, &winusb_file_handle);
     if (winusb_file_handle == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "Open WinUSB handle error:0x%x\n.", GetLastError());
+        fprintf(stderr, "Open WinUSB handle error:0x%lx\n.", GetLastError());
     }
 
     free(device_interface_detail_data);
@@ -125,13 +125,13 @@ status_t close_device(void)
 status_t transfer_control(IN host_operation_command_t command, IN uint16_t value, OUT OPTIONAL uint8_t* retbuf, size_t retbuflen)
 {
     WINUSB_SETUP_PACKET control_packet = {
-        .RequestType = BMREQUEST_VENDOR | BMREQUEST_TO_ENDPOINT,
+        .RequestType = BMREQUEST_VENDOR<<5 | BMREQUEST_TO_DEVICE | BMREQUEST_DEVICE_TO_HOST<<7,
         .Request = command,
         .Value = value,
         .Length = 0
     };
-
-    if (WinUsb_ControlTransfer(winusb_file_handle, control_packet, NULL, 0, NULL, NULL)) {
+    ULONG byte_transferred;
+    if (WinUsb_ControlTransfer(winusb_file_handle, control_packet, retbuf, (int32_t)retbuflen, &byte_transferred, NULL)) {
         return STATUS_SUCCESS;
     }
     return STATUS_TRANSFER_FAILED;

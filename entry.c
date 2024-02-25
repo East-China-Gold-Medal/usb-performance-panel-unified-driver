@@ -7,12 +7,15 @@
 
 #include <common.h>
 #include <stdio.h>
-
 #include <platform.h>
-int main()
+#include <datasource.h>
+
+int main(void)
 {
+	status_t status = STATUS_SUCCESS;
 	open_device();
-	get_channel_count();
+	uint8_t channels = get_channel_count();
+	status = initialize_data_source_binding(channels);
 	close_device();
 	return 0;
 }

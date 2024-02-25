@@ -15,12 +15,15 @@ if(WIN32)
     add_definitions("-DUNICODE" "-D_UNICODE")
     list(APPEND DATA_COLLECTION_SOURCES
         datasource/windows/cpu.c
+        datasource/windows/registryreader.c
     )
+    add_compile_options("/Wall")
 elseif(LINUX)
     message ("Use Linux data collection method.")
     list(APPEND DATA_COLLECTION_SOURCES
         datasource/linux/cpu.c
     )
+    add_compile_options("-Wall")
 else()
      message (FATAL_ERROR "Unsupported data collection method!")
 endif()
@@ -49,7 +52,6 @@ else()
 endif()
 
 add_executable (usb-performance-panel-unified-driver ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
-
 
 target_include_directories (usb-performance-panel-unified-driver PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
