@@ -10,12 +10,15 @@
 #include <platform.h>
 #include <datasource.h>
 
+uint8_t channel_count;
+
 int main(void)
 {
 	status_t status = STATUS_SUCCESS;
 	open_device();
-	uint8_t channels = get_channel_count();
-	status = initialize_data_source_binding(channels);
+	channel_count = get_channel_count();
+	status = initialize_data_source_binding(channel_count);
+	enter_loop();
 	close_device();
 	return 0;
 }

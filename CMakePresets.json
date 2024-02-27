@@ -9,7 +9,8 @@
             "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "GITHUB_MIRROR": "ghproxy.org/https://github.com"
             },
             "condition": {
                 "type": "equals",
@@ -27,7 +28,8 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "BUILD_WINUSB_PROGRAM": true
+                "BUILD_WINUSB_PROGRAM": true,
+                "NVIDIA_PLEASE": true
             }
         },
         {

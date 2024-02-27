@@ -13,6 +13,9 @@
 #define OUT
 #define OPTIONAL
 
+// Loop interval, in ms.
+#define LOOP_INTERVAL_MS 1000
+
 // USB Control command to send to MCU.
 typedef const enum {
     COMMAND_QUERY_CAP = 0xFF,

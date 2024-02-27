@@ -5,3 +5,5 @@
 
 */
 #include <datasource.h>
+
+// WMI Win32_Processor

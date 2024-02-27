@@ -13,6 +13,10 @@
 data_source_collection_callback_t* data_source_callbacks;
 uint8_t* calibration_values;
 
+#ifdef NVIDIA_PLEASE
+extern void data_source_nvidia_prepare(void);
+#endif
+
 uint8_t get_channel_count(void)
 {
     uint8_t ret_val = 0;
@@ -47,11 +51,15 @@ status_t initialize_data_source_binding(IN uint8_t total_channel_count)
     if (!calibration_values) {
         free(calibration_values);
     }
-    data_source_callbacks = malloc(sizeof(data_source_collection_callback_t)*total_channel_count);
-    calibration_values = malloc(sizeof(uint8_t) * total_channel_count);
+    data_source_callbacks = calloc(1, sizeof(data_source_collection_callback_t)*total_channel_count);
+    calibration_values = calloc(1, sizeof(uint8_t) * total_channel_count);
     if (!(data_source_callbacks) || !(calibration_values)) {
         return STATUS_DEVICE_CONFIGURATION_FAILED;
     }
+
+#ifdef NVIDIA_PLEASE
+    data_source_nvidia_prepare();
+#endif
 
     for (uint8_t i = 0; i < total_channel_count; i++) {
         status = get_bound_data_source(i,&data_source_callbacks[i], &calibration_values[i]);
@@ -66,4 +74,26 @@ status_t initialize_data_source_binding(IN uint8_t total_channel_count)
 uint8_t data_source_calibration(void)
 {
     return 0xFF;
+}
+
+status_t send_usage(uint8_t channel, uint8_t calibrated_value)
+{
+    return transfer_control(COMMAND_SET_USAGE, ((uint16_t)channel)<<8 | calibrated_value, NULL, 0);
+}
+
+status_t main_loop_callback(void)
+{
+    uint8_t value;
+    status_t status;
+
+    for (int i = 0; i < channel_count; i++) {
+        if (data_source_callbacks[i] != NULL) {
+            value = data_source_callbacks[i]();
+            status = send_usage((uint8_t)i, (uint8_t)((((uint32_t)value) * calibration_values[i])>>8));
+            if (status != STATUS_SUCCESS) {
+                return status;
+            }
+        }
+    }
+    return STATUS_SUCCESS;
 }
