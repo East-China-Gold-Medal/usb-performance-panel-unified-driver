@@ -26,6 +26,7 @@ typedef enum {
 
 // For calibration: always return 0xFF (MAX).
 extern uint8_t data_source_calibration(void);
+extern uint8_t data_source_cpu_utility(void);
 #ifdef NVIDIA_PLEASE
 extern uint8_t nvidia_gpu_found;
 extern uint8_t data_source_nvidia_gpu_utility(void);
@@ -73,6 +74,10 @@ status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_ca
     switch (data_source) {
         case DATA_SOURCE_CALIBRATION: {
             *callback = data_source_calibration;
+            break;
+        }
+        case DATA_SOURCE_CPU_UTILITY: {
+            *callback = data_source_cpu_utility;
             break;
         }
         case DATA_SOURCE_GPU_UTILITY: {
