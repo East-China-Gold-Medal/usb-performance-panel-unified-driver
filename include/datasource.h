@@ -28,7 +28,4 @@ status_t initialize_data_source_binding(IN uint8_t total_channel_count);
 // Send usage to device.
 status_t send_usage(uint8_t channel, uint8_t calibrated_value);
 
-// Enter platform-specific loop that calls main_loop_callback every period of time.
-status_t enter_loop(void);
-
 #endif

@@ -17,6 +17,10 @@ uint8_t* calibration_values;
 extern void data_source_nvidia_prepare(void);
 #endif
 
+#ifdef AMD_CPU_PLEASE
+extern void data_source_amd_cpu_prepare(void);
+#endif
+
 uint8_t get_channel_count(void)
 {
     uint8_t ret_val = 0;
@@ -59,6 +63,9 @@ status_t initialize_data_source_binding(IN uint8_t total_channel_count)
 
 #ifdef NVIDIA_PLEASE
     data_source_nvidia_prepare();
+#endif
+#ifdef AMD_CPU_PLEASE
+    data_source_amd_cpu_prepare();
 #endif
 
     for (uint8_t i = 0; i < total_channel_count; i++) {
