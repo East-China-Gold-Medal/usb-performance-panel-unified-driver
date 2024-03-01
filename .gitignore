@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # 3rd party files.
 3rdparty/**
+
+# Generated certificate.
+platform/UsbPerformancePanelUmdf2TestCert*

@@ -91,12 +91,12 @@ if(${AMD_CPU_PLEASE})
     endif()
     add_custom_command (
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Platform.dll
-    COMMAND ${CMAKE_COMMAND} -E copy_file
+    COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/RyzenMasterMonitoringSDK/bin/Platform.dll
             ${CMAKE_CURRENT_BINARY_DIR}/Platform.dll)
     add_custom_command (
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Device.dll
-    COMMAND ${CMAKE_COMMAND} -E copy_file
+    COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/RyzenMasterMonitoringSDK/bin/Device.dll
             ${CMAKE_CURRENT_BINARY_DIR}/Device.dll)
     link_libraries (${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/RyzenMasterMonitoringSDK/lib/Device.lib 
@@ -154,6 +154,70 @@ if(${BUILD_USER_MODE_DRIVER})
         message (FATAL_ERROR "Unknown CPU arch ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
     endif()
     add_library (UsbPerformancePanelUmdf2 SHARED ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
+
+    cmake_host_system_information(RESULT WINDOWS_10_SDK_VERSION QUERY 
+    WINDOWS_REGISTRY "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots"
+    SUBKEYS)
+    # Only pick the first installed SDK.
+    list (GET WINDOWS_10_SDK_VERSION 0 WINDOWS_10_SDK_VERSION)
+    message ("Windows 10 SDK version:${WINDOWS_10_SDK_VERSION}")
+    if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "i[3-6]86")
+        set (STAMPINF_ARCH X86)
+        set (WINSDK_10_ARCH x86)
+    elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "(AMD|x86_)64")
+        set (STAMPINF_ARCH AMD64)
+        set (WINSDK_10_ARCH x64)
+    endif()
+    set (WINDOWS_10_SDK_BIN_PATH "${WINDOWS_10_SDK_PATH}/bin/${WINDOWS_10_SDK_VERSION}/${WINSDK_10_ARCH}")
+
+    # If there isn't signing cert, create one.
+    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/platform/UsbPerformancePanelUmdf2TestCert.cer)
+        message ("Test certificate not found. Creating......")
+        # pvk2pfx Bug: only accepts backslash     
+        execute_process (
+            COMMAND "${WINDOWS_10_SDK_BIN_PATH}/MakeCert.exe" 
+            -r -pe -ss PrivateCertStore -n CN=EastChinaGoldMedalTest -eku 1.3.6.1.5.5.7.3.3
+            "UsbPerformancePanelUmdf2TestCert.cer"
+            -sv "UsbPerformancePanelUmdf2TestCert.pvk"
+            ENCODING AUTO
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/platform
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+        execute_process (
+            COMMAND "${WINDOWS_10_SDK_BIN_PATH}/pvk2pfx.exe"
+            -pvk UsbPerformancePanelUmdf2TestCert.pvk
+            -spc UsbPerformancePanelUmdf2TestCert.cer
+            -pfx UsbPerformancePanelUmdf2TestCert.pfx
+            ENCODING AUTO
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/platform
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+    endif()
+
+    # Driver Sign.
+
+    # Stampinf Bug: only accepts backslash     
+    file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/UsbPerformancePanelUmdf2.inf" BACKSLASH_INF_PATH)
+    add_custom_command (
+        TARGET UsbPerformancePanelUmdf2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_SOURCE_DIR}/platform/UsbPerformancePanelUmdf2Template.inf"
+        "${CMAKE_CURRENT_BINARY_DIR}/UsbPerformancePanelUmdf2.inf"
+        COMMAND "${WINDOWS_10_SDK_BIN_PATH}/stampinf.exe" -d * -a ${STAMPINF_ARCH} -v * -u 2.0.0 -f
+        "${BACKSLASH_INF_PATH}"
+        VERBATIM
+    )
+
+    add_custom_command (
+        TARGET UsbPerformancePanelUmdf2 POST_BUILD
+        COMMAND ${WINDOWS_10_SDK_PATH}/bin/${WINDOWS_10_SDK_VERSION}/x86/Inf2cat.exe # Only in x86 folder!!!
+        /driver:${CMAKE_CURRENT_BINARY_DIR} /os:8_${WINSDK_10_ARCH}
+        COMMAND "${WINDOWS_10_SDK_BIN_PATH}/signtool.exe" sign /fd sha256 
+        /f "${CMAKE_CURRENT_SOURCE_DIR}/platform/UsbPerformancePanelUmdf2TestCert.pfx"
+        "${CMAKE_CURRENT_BINARY_DIR}/UsbPerformancePanelUmdf2.cat"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM
+    )
 
 else()
     add_executable (usb-performance-panel-unified-driver ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
