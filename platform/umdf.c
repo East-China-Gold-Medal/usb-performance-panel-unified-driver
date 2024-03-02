@@ -5,15 +5,18 @@
 
 */
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <common.h>
 #include <datasource.h>
 #include <platform.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <wdf.h>
 #include <usb.h>
 #include <wdfusb.h>
 #include <initguid.h>
+#include "windows_trace.h"
+#include <umdf.c.tmh>  //Generated
+
 extern const __declspec(selectany) LONGLONG DEFAULT_CONTROL_TRANSFER_TIMEOUT = 5 * -1 * WDF_TIMEOUT_TO_SEC;
 
 DRIVER_INITIALIZE DriverEntry;
@@ -27,39 +30,39 @@ extern status_t main_loop_callback(void);
 // Device Interface GUID
 // 6da0b5d7-b496-4790-9227-c009c96eba6e
 //
-DEFINE_GUID(GUID_DEVINTERFACE_UsbPerformancePanel,
-    0x6da0b5d7, 0xb496, 0x4790, 0x92, 0x27, 0xc0, 0x09, 0xc9, 0x6e, 0xba, 0x6e);
 
 static WDFUSBDEVICE UsbDevice;
 static WDFTIMER Timer;
+static WDFDEVICE Device;
 uint8_t channel_count;
 
 NTSTATUS UsbPerformancePanelCreateDevice(_Inout_ PWDFDEVICE_INIT DeviceInit)
 {
     WDF_PNPPOWER_EVENT_CALLBACKS pnpPowerCallbacks;
     WDF_OBJECT_ATTRIBUTES deviceAttributes;
-    WDFDEVICE device;
     NTSTATUS status;
 
     WDF_PNPPOWER_EVENT_CALLBACKS_INIT(&pnpPowerCallbacks);
     pnpPowerCallbacks.EvtDevicePrepareHardware = UsbPerformancePanelEvtDevicePrepareHardware;
     WdfDeviceInitSetPnpPowerEventCallbacks(DeviceInit, &pnpPowerCallbacks);
-    status = WdfDeviceCreate(&DeviceInit, &deviceAttributes, &device);
+    status = WdfDeviceCreate(&DeviceInit, &deviceAttributes, &Device);
     if (NT_SUCCESS(status)) {
-        status = WdfDeviceCreateDeviceInterface(device,&GUID_DEVINTERFACE_UsbPerformancePanel,NULL);
+        status = WdfDeviceCreateDeviceInterface(Device,&GUID_DEVINTERFACE_UsbPerformancePanel,NULL);
     }
 
     return status;
 }
 
-static NTSTATUS UsbPerformancePanelEvtDevicePrepareHardware(
-    _In_ WDFDEVICE Device,_In_ WDFCMRESLIST ResourceList, _In_ WDFCMRESLIST ResourceListTranslated)
+NTSTATUS UsbPerformancePanelEvtDevicePrepareHardware(
+    _In_ WDFDEVICE WdfDevice,_In_ WDFCMRESLIST ResourceList, _In_ WDFCMRESLIST ResourceListTranslated)
 {
     NTSTATUS status;
     WDF_USB_DEVICE_SELECT_CONFIG_PARAMS configParams;
 
     UNREFERENCED_PARAMETER(ResourceList);
     UNREFERENCED_PARAMETER(ResourceListTranslated);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
 
     status = STATUS_SUCCESS;
     if (UsbDevice == NULL) {
@@ -68,6 +71,8 @@ static NTSTATUS UsbPerformancePanelEvtDevicePrepareHardware(
             &UsbDevice
         );
         if (!NT_SUCCESS(status)) {
+            TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
+                "WdfUsbTargetDeviceCreateWithParameters failed 0x%x", status);
             return status;
         }
     }
@@ -80,18 +85,24 @@ static NTSTATUS UsbPerformancePanelEvtDevicePrepareHardware(
         &configParams
     );
     if (!NT_SUCCESS(status)) {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
+            "WdfUsbTargetDeviceSelectConfig failed 0x%x", status);
         return status;
     }
     
     channel_count = get_channel_count();
-
+    Device = WdfDevice;
     return status;
 }
-NTSTATUS NTAPI DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath)
 {
     WDF_DRIVER_CONFIG config;
     NTSTATUS status;
     WDF_OBJECT_ATTRIBUTES attributes;
+
+    // Initialize WPP Tracing
+    WPP_INIT_TRACING(DriverObject, RegistryPath);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
 
     //
     // Register a cleanup callback so that we can call WPP_CLEANUP when
@@ -103,10 +114,14 @@ NTSTATUS NTAPI DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRIN
     WDF_DRIVER_CONFIG_INIT(&config, UsbPerformancePanelEvtDeviceAdd);
 
     status = WdfDriverCreate(DriverObject, RegistryPath, &attributes, &config, WDF_NO_HANDLE);
-
+ 
     if (!NT_SUCCESS(status)) {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DRIVER, "WdfDriverCreate failed %!STATUS!", status);
+        WPP_CLEANUP(DriverObject);
         return status;
     }
+    enter_loop();
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     return status;
 }
 
@@ -114,14 +129,18 @@ NTSTATUS UsbPerformancePanelEvtDeviceAdd(_In_ WDFDRIVER Driver, _Inout_ PWDFDEVI
 {
     NTSTATUS status;
     UNREFERENCED_PARAMETER(Driver);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
     status = UsbPerformancePanelCreateDevice(DeviceInit);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     return status;
 }
 
 VOID UsbPerformancePanelEvtDriverContextCleanup(_In_ WDFOBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
     WdfTimerStop(Timer, TRUE);
+    WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER)DriverObject));
 }
 
 _Function_class_(EVT_WDF_TIMER)
@@ -131,25 +150,25 @@ VOID MonitorThreadFunction(WDFTIMER Unused)
     main_loop_callback();
 }
 
-WDFTIMER StartMonitorThread(WDFDEVICE Device)
+status_t enter_loop(void)
 {
     WDF_TIMER_CONFIG  timerConfig;
     WDF_OBJECT_ATTRIBUTES  timerAttributes;
-    WDFTIMER  timerHandle;
     NTSTATUS  status;
 
     WDF_TIMER_CONFIG_INIT_PERIODIC(&timerConfig, MonitorThreadFunction, LOOP_INTERVAL_MS);
     timerConfig.TolerableDelay = TolerableDelayUnlimited;
     WDF_OBJECT_ATTRIBUTES_INIT(&timerAttributes);
     timerAttributes.ParentObject = Device;
-    status = WdfTimerCreate(&timerConfig, &timerAttributes, &timerHandle);
+    status = WdfTimerCreate(&timerConfig, &timerAttributes, &Timer);
     if (!NT_SUCCESS(status)) {
-        timerHandle = NULL;
+        Timer = NULL;
+        return STATUS_DRIVER_INITIALIZATION_FAILED;
     }
     else {
-        WdfTimerStart(timerHandle, WDF_REL_TIMEOUT_IN_MS(LOOP_INTERVAL_MS));
+        WdfTimerStart(Timer, WDF_REL_TIMEOUT_IN_MS(LOOP_INTERVAL_MS));
     }
-    return timerHandle;
+    return STATUS_SUCCESS;
 }
 
 _IRQL_requires_(PASSIVE_LEVEL)
@@ -161,15 +180,20 @@ status_t transfer_control(IN host_operation_command_t command, IN uint16_t value
     WDF_MEMORY_DESCRIPTOR  memoryDescriptor;
 
     PAGED_CODE();
-    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&memoryDescriptor, retbuf, retbuflen);
+    TraceEvents(TRACE_LEVEL_VERBOSE, TRACE_DEVICE, "-->TransportUsage\n");
+    WDF_MEMORY_DESCRIPTOR_INIT_BUFFER(&memoryDescriptor, retbuf, (ULONG)retbuflen);
     WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions, WDF_REQUEST_SEND_OPTION_TIMEOUT);
     WDF_REQUEST_SEND_OPTIONS_SET_TIMEOUT(&sendOptions, DEFAULT_CONTROL_TRANSFER_TIMEOUT);
     WDF_USB_CONTROL_SETUP_PACKET_INIT_VENDOR(&controlSetupPacket, BmRequestDeviceToHost, BmRequestToDevice, command, value, 0);
     status = WdfUsbTargetDeviceSendControlTransferSynchronously(UsbDevice, NULL, &sendOptions, &controlSetupPacket, &memoryDescriptor, NULL);
     if (!NT_SUCCESS(status)) {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
+            "Failed to set Usage - 0x%x \n", status);
         return STATUS_TRANSFER_FAILED;
     }
     else {
+        TraceEvents(TRACE_LEVEL_VERBOSE, TRACE_DEVICE,
+            "Set Usage: Success\n");
         return STATUS_SUCCESS;
     }
 }

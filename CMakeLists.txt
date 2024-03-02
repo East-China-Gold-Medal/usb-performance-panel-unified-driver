@@ -143,7 +143,52 @@ if(${BUILD_USER_MODE_DRIVER})
     endif()
 
     include_directories ("${WINDOWS_10_SDK_PATH}/Include/wdf/umdf/2.0")
-    link_libraries ("ntdll.lib")
+    link_libraries ("ntdll.lib" "ucrt.lib" "wpprecorderum.lib")
+    add_compile_options (
+        "/DWIN32_LEAN_AND_MEAN=1"               # Enable "clean" Windows header
+        "/D_WIN32_WINNT=0x0603"                 # UMDF 2 requires Windows "Blue" 8.1 or later
+        "/DWINVER=0x0603"                       # UMDF 2 requires Windows "Blue" 8.1 or later
+        "/DWINNT=1"                             # Windows "Blue" 8.1 is definitely Windows NT
+        "/DNTDDI_VERSION=0x06030000"            # NT DDI version with Windows "Blue" 8.1
+        "/DUMDF_VERSION_MAJOR=2"                # UMDF 2
+        "/DUMDF_VERSION_MINOR=0"                # UMDF 2.0
+        "/DWPP_MACRO_USE_KM_VERSION_FOR_UM=1"   # Use the same version between UMDF and KMDF
+        "/DENABLE_WPP_RECORDER=1"               # Enable WPP recorder
+        "/GF"                                   # Eliminate duplicate strings
+        "/Gm-"                                  # Force full build
+        "/MT"                                   # You cannot load external supporting DLLs
+        "/Zp8"                                  # Struct number aligned to 8
+        "/GS"                                   # Buffer security check
+        "/Gy"                                   # Enable LTCG
+        "/fp:precise"                           # Precise float calculation
+        "/Qspectre"                             # Spectre fix
+        "/Zc:wchar_t-"                          # Language feature: wchar_t is not a built-in type
+        "/Zc:forScope"                          # Language feature: for loop's temp vars de-initialize after loop.
+        "/Zc:inline"                            # Language feature: Remove unreferenced code
+        "/GR-"                                  # Disable RTTI
+        "/Gz"                                   # Enable Stack Canary
+        "/D_ATL_NO_WIN_SUPPORT"                 # No "Windows" environment support in driver stack
+        "/d1nodatetime"                         # Undefs __DATE__, __TIME__, __TIMESTAMP__
+        "/d1import_no_registry"                 # Do not search #import
+        "/d2AllowCompatibleILVersions"          # Allow different version of MSILs
+        "/d2Zi+"                                # Optimized debugging
+    )
+    add_link_options (
+        "/INCREMENTAL:NO"                   # Disable incremental linking
+        "/SECTION:\"INIT,d\""               # Discard INIT section
+        "/NODEFAULTLIB:KERNEL32.LIB"        # Get rid of Kernel32.dll
+        "/NODEFAULTLIB:USER32.LIB"          # Get rid of User32.dll
+        "/NODEFAULTLIB:LIBUCRT.LIB"         # Get rid of Libucrt.dll
+        "/MANIFEST:NO"                      # No need of DLL manifest
+        "/OPT:REF"                          # Discard unreferenced symbols
+        "/LTCG"                             # Link-time code generation
+        "/OPT:ICF"                          # COMDAT folding
+        "/DYNAMICBASE"                      # Enable ASLR
+        "/NXCOMPAT"                         # Enable Non-eXecution support
+        "/MERGE:\"_TEXT=.text\;_PAGE=PAGE\""# Combine sections
+        "/GUARD:CF"                         # Enable Control Flow guard
+    )
+
     if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "i[3-6]86")
         message ("Building 32-bit UMDF Driver")
         link_libraries ("${WINDOWS_10_SDK_PATH}/Lib/wdf/umdf/x86/2.0/WdfDriverStubUm.lib")
@@ -153,7 +198,6 @@ if(${BUILD_USER_MODE_DRIVER})
     else()
         message (FATAL_ERROR "Unknown CPU arch ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
     endif()
-    add_library (UsbPerformancePanelUmdf2 SHARED ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
 
     cmake_host_system_information(RESULT WINDOWS_10_SDK_VERSION QUERY 
     WINDOWS_REGISTRY "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots"
@@ -170,6 +214,25 @@ if(${BUILD_USER_MODE_DRIVER})
     endif()
     set (WINDOWS_10_SDK_BIN_PATH "${WINDOWS_10_SDK_PATH}/bin/${WINDOWS_10_SDK_VERSION}/${WINSDK_10_ARCH}")
 
+    # Generate trace tmh file.
+    # Bug Fix for tracewpp.
+    file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}" CMAKE_CURRENT_BINARY_DIR_NATIVE)
+    file (TO_NATIVE_PATH "${PLATFORM_SOURCES}" PLATFORM_SOURCES_NATIVE)
+    add_custom_target (
+        GenerateTmhFile
+        COMMAND ${WINDOWS_10_SDK_BIN_PATH}/tracewpp.exe
+        -ext:.h.H.c.C -preserveext:.h.H.c.C
+        -cfgdir:"${WINDOWS_10_SDK_PATH}/bin/${WINDOWS_10_SDK_VERSION}/WppConfig/Rev1"
+        ${PLATFORM_SOURCES_NATIVE}
+        -oDir:"${CMAKE_CURRENT_BINARY_DIR_NATIVE}"
+        -dll -v
+        -Scan:platform\\windows_trace.h
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    include_directories (${CMAKE_CURRENT_BINARY_DIR})
+    include_directories ("${WINDOWS_10_SDK_PATH}/include/${WINDOWS_10_SDK_VERSION}/")
+    add_library (UsbPerformancePanelUmdf2 SHARED ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
+    add_dependencies(UsbPerformancePanelUmdf2 GenerateTmhFile)
     # If there isn't signing cert, create one.
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/platform/UsbPerformancePanelUmdf2TestCert.cer)
         message ("Test certificate not found. Creating......")
@@ -196,15 +259,14 @@ if(${BUILD_USER_MODE_DRIVER})
 
     # Driver Sign.
 
-    # Stampinf Bug: only accepts backslash     
-    file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/UsbPerformancePanelUmdf2.inf" BACKSLASH_INF_PATH)
     add_custom_command (
         TARGET UsbPerformancePanelUmdf2 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/platform/UsbPerformancePanelUmdf2Template.inf"
         "${CMAKE_CURRENT_BINARY_DIR}/UsbPerformancePanelUmdf2.inf"
         COMMAND "${WINDOWS_10_SDK_BIN_PATH}/stampinf.exe" -d * -a ${STAMPINF_ARCH} -v * -u 2.0.0 -f
-        "${BACKSLASH_INF_PATH}"
+        "UsbPerformancePanelUmdf2.inf"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
 
