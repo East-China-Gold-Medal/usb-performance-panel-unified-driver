@@ -7,6 +7,7 @@
 #ifndef ENTRY_H
 #define ENTRY_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define IN
@@ -16,6 +17,9 @@
 // Loop interval, in ms.
 #define LOOP_INTERVAL_MS 1000
 
+// Currently-used USB VID.
+#define PANEL_VID 0x0cbc
+
 // USB Control command to send to MCU.
 typedef const enum {
     COMMAND_QUERY_CAP = 0xFF,
@@ -24,8 +28,8 @@ typedef const enum {
 
 // USB PID for currently supported products.
 typedef const enum {
-    PID_CBC = 0x0cbc, // CBC's USB performance panel
-    PID_HZ = 0xcbc0   // HZ's "Enhanced" USB performance panel
+    PANEL_PID_CBC = 0x0cbc, // CBC's USB performance panel
+    PANEL_PID_HZ = 0xcbc0   // HZ's "Enhanced" USB performance panel
 } panel_pid_t;
 
 // Capabilities reporting methodology returned from MCU.

@@ -42,8 +42,10 @@ elseif(LINUX)
     message ("Use Linux data collection method.")
     list(APPEND DATA_COLLECTION_SOURCES
         datasource/linux/cpu.c
+        datasource/linux/configurationreader.c
     )
-    add_compile_options("-Wall")
+    add_compile_options("-Wall" "-g")
+    link_libraries(json-c)
 else()
      message (FATAL_ERROR "Unsupported data collection method!")
 endif()
@@ -117,6 +119,16 @@ elseif(${BUILD_LIBUSB_PROGRAM})
         entry.c
         platform/libusb.c
     )
+    if(WIN32)
+        list(APPEND PLATFORM_SOURCES
+            platform/windows_eventtimer.c
+        )
+    else()
+        list(APPEND PLATFORM_SOURCES
+            platform/unix_generic_timer.c
+        )
+    endif()
+    link_libraries(usb-1.0)
 elseif(${BUILD_WINUSB_PROGRAM})
     message ("Building user-mode WinUSB program.")
     set(PLATFORM_SOURCES

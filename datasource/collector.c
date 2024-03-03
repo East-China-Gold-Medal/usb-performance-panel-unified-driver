@@ -49,10 +49,10 @@ status_t initialize_data_source_binding(IN uint8_t total_channel_count)
 
     status_t status = STATUS_SUCCESS;
 
-    if (!data_source_callbacks) {
+    if (data_source_callbacks) {
         free(data_source_callbacks);
     }
-    if (!calibration_values) {
+    if (calibration_values) {
         free(calibration_values);
     }
     data_source_callbacks = calloc(1, sizeof(data_source_collection_callback_t)*total_channel_count);
@@ -96,6 +96,7 @@ status_t main_loop_callback(void)
     for (int i = 0; i < channel_count; i++) {
         if (data_source_callbacks[i] != NULL) {
             value = data_source_callbacks[i]();
+            printf("Channel %d, value %d*%d\n",i,value,calibration_values[i]);
             status = send_usage((uint8_t)i, (uint8_t)((((uint32_t)value) * calibration_values[i])>>8));
             if (status != STATUS_SUCCESS) {
                 return status;

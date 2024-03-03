@@ -367,3 +367,7 @@ FodyWeavers.xsd
 
 # Generated certificate.
 platform/UsbPerformancePanelUmdf2TestCert*
+
+# KDevelop files.
+*.kdev4
+.kdev4/**
