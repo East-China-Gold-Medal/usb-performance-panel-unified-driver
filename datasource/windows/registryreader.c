@@ -19,7 +19,7 @@ typedef enum {
     DATA_SOURCE_GPU_UTILITY,
     DATA_SOURCE_CPU_TEMPERATURE,
     DATA_SOURCE_GPU_TEMPERATURE,
-    DATA_SOURCE_RAM_USAGE,
+    DATA_SOURCE_RAM_UTILITY,
 
     DATA_SOURCE_MAX
 } data_source_t;
@@ -27,6 +27,7 @@ typedef enum {
 // For calibration: always return 0xFF (MAX).
 extern uint8_t data_source_calibration(void);
 extern uint8_t data_source_cpu_utility(void);
+extern uint8_t data_source_ram_utility(void);
 #ifdef NVIDIA_PLEASE
 extern uint8_t nvidia_gpu_found;
 extern uint8_t data_source_nvidia_gpu_utility(void);
@@ -52,7 +53,6 @@ status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_ca
             status = RegCreateKeyEx(HKEY_CURRENT_USER, L"Software\\East China Gold Medal\\Performance Panel", 0,
                 NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &registry_key, NULL);
             if (status != ERROR_SUCCESS) {
-                fprintf(stderr, "Cannot open registry key: 0x%lx\n", status);
                 return STATUS_INVALID_CONFIGURATION;
             }
         }
@@ -65,7 +65,6 @@ status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_ca
         // Cannot read, try to set.
         status = RegSetValueEx(registry_key, key_name_buffer, 0, REG_DWORD, (VOID*)&key_data, key_data_size);
         if (status != ERROR_SUCCESS) {
-            fprintf(stderr, "Cannot get registry value: 0x%lx\n", status);
             return STATUS_INVALID_CONFIGURATION;
         }
     }
@@ -96,6 +95,9 @@ status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_ca
 #endif
             break;
         }
+        case DATA_SOURCE_RAM_UTILITY: {
+            *callback = data_source_ram_utility;
+        }
         default:;
     }
 
@@ -112,7 +114,6 @@ status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_ca
         // Cannot read, try to set.
         status = RegSetValueEx(registry_key, key_name_buffer, 0, REG_DWORD, (VOID*)&key_data, key_data_size);
         if (status != ERROR_SUCCESS) {
-            fprintf(stderr, "Cannot get registry value: 0x%lx\n", status);
             return STATUS_INVALID_CONFIGURATION;
         }
     }

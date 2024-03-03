@@ -22,6 +22,7 @@ if(WIN32)
     add_definitions ("-DUNICODE" "-D_UNICODE")
     list (APPEND DATA_COLLECTION_SOURCES
         datasource/windows/cpu.c
+        datasource/windows/ram.c
         datasource/windows/registryreader.c
     )
     if(${NVIDIA_PLEASE})
@@ -273,7 +274,7 @@ if(${BUILD_USER_MODE_DRIVER})
     add_custom_command (
         TARGET UsbPerformancePanelUmdf2 POST_BUILD
         COMMAND ${WINDOWS_10_SDK_PATH}/bin/${WINDOWS_10_SDK_VERSION}/x86/Inf2cat.exe # Only in x86 folder!!!
-        /driver:${CMAKE_CURRENT_BINARY_DIR} /os:8_${WINSDK_10_ARCH}
+        /driver:${CMAKE_CURRENT_BINARY_DIR} /os:8_${WINSDK_10_ARCH} /uselocaltime
         COMMAND "${WINDOWS_10_SDK_BIN_PATH}/signtool.exe" sign /fd sha256 
         /f "${CMAKE_CURRENT_SOURCE_DIR}/platform/UsbPerformancePanelUmdf2TestCert.pfx"
         "${CMAKE_CURRENT_BINARY_DIR}/UsbPerformancePanelUmdf2.cat"

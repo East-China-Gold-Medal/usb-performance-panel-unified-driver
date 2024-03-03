@@ -39,17 +39,20 @@ uint8_t channel_count;
 NTSTATUS UsbPerformancePanelCreateDevice(_Inout_ PWDFDEVICE_INIT DeviceInit)
 {
     WDF_PNPPOWER_EVENT_CALLBACKS pnpPowerCallbacks;
-    WDF_OBJECT_ATTRIBUTES deviceAttributes;
     NTSTATUS status;
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
     WDF_PNPPOWER_EVENT_CALLBACKS_INIT(&pnpPowerCallbacks);
     pnpPowerCallbacks.EvtDevicePrepareHardware = UsbPerformancePanelEvtDevicePrepareHardware;
     WdfDeviceInitSetPnpPowerEventCallbacks(DeviceInit, &pnpPowerCallbacks);
-    status = WdfDeviceCreate(&DeviceInit, &deviceAttributes, &Device);
+    status = WdfDeviceCreate(&DeviceInit, WDF_NO_OBJECT_ATTRIBUTES, &Device);
     if (NT_SUCCESS(status)) {
         status = WdfDeviceCreateDeviceInterface(Device,&GUID_DEVINTERFACE_UsbPerformancePanel,NULL);
     }
-
+    else {
+        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Fail");
+    }
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     return status;
 }
 
@@ -91,7 +94,15 @@ NTSTATUS UsbPerformancePanelEvtDevicePrepareHardware(
     }
     
     channel_count = get_channel_count();
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE,
+        "This device supports %d channels", channel_count);
+    if (initialize_data_source_binding(channel_count) != STATUS_SUCCESS) {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
+            "initialize_data_source_binding failed");
+    }
     Device = WdfDevice;
+    enter_loop();
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     return status;
 }
 NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath)
@@ -120,7 +131,6 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING Regi
         WPP_CLEANUP(DriverObject);
         return status;
     }
-    enter_loop();
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     return status;
 }
@@ -139,7 +149,10 @@ VOID UsbPerformancePanelEvtDriverContextCleanup(_In_ WDFOBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
-    WdfTimerStop(Timer, TRUE);
+    if (Timer != NULL) {
+        WdfTimerStop(Timer, TRUE);
+    }
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER)DriverObject));
 }
 
@@ -156,18 +169,22 @@ status_t enter_loop(void)
     WDF_OBJECT_ATTRIBUTES  timerAttributes;
     NTSTATUS  status;
 
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
     WDF_TIMER_CONFIG_INIT_PERIODIC(&timerConfig, MonitorThreadFunction, LOOP_INTERVAL_MS);
     timerConfig.TolerableDelay = TolerableDelayUnlimited;
     WDF_OBJECT_ATTRIBUTES_INIT(&timerAttributes);
     timerAttributes.ParentObject = Device;
     status = WdfTimerCreate(&timerConfig, &timerAttributes, &Timer);
     if (!NT_SUCCESS(status)) {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DRIVER, "WdfTimerCreate failed %!STATUS!", status);
         Timer = NULL;
         return STATUS_DRIVER_INITIALIZATION_FAILED;
     }
     else {
         WdfTimerStart(Timer, WDF_REL_TIMEOUT_IN_MS(LOOP_INTERVAL_MS));
     }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 
