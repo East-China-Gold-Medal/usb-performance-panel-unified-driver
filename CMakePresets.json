@@ -33,6 +33,20 @@
             }
         },
         {
+            "name": "x64-debug-libusb",
+            "displayName": "x64 Debug libUSB",
+            "inherits": "windows-base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_LIBUSB_PROGRAM": true,
+                "NVIDIA_PLEASE": true
+            }
+        },
+        {
             "name": "x64-debug-umdf",
             "displayName": "x64 Debug UMDF",
             "inherits": "windows-base",
@@ -58,6 +72,14 @@
             "name": "x64-release-umdf",
             "displayName": "x64 Release UMDF",
             "inherits": "x64-debug-umdf",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "x64-release-libusb",
+            "displayName": "x64 Release libUSB",
+            "inherits": "x64-debug-libusb",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
