@@ -96,7 +96,6 @@ status_t main_loop_callback(void)
     for (int i = 0; i < channel_count; i++) {
         if (data_source_callbacks[i] != NULL) {
             value = data_source_callbacks[i]();
-            printf("Channel %d, value %d*%d\n",i,value,calibration_values[i]);
             status = send_usage((uint8_t)i, (uint8_t)((((uint32_t)value) * calibration_values[i])>>8));
             if (status != STATUS_SUCCESS) {
                 return status;

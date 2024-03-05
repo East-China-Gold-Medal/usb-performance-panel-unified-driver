@@ -55,10 +55,16 @@ status_t close_device(void)
 // Transfer control to MCU and (Optionally) gets a return value on COMMAND_QUERY_CAP.
 status_t transfer_control(IN host_operation_command_t command, IN uint16_t value, OUT OPTIONAL uint8_t* retbuf, size_t retbuflen)
 {
-    uint8_t request_type = LIBUSB_ENDPOINT_IN|LIBUSB_REQUEST_TYPE_VENDOR|LIBUSB_RECIPIENT_DEVICE;
+    uint8_t request_type = LIBUSB_REQUEST_TYPE_VENDOR|LIBUSB_RECIPIENT_DEVICE;
+    if(retbuflen) {
+        request_type |= LIBUSB_ENDPOINT_IN;
+    }
+    else {
+        request_type |= LIBUSB_ENDPOINT_OUT;
+    }
     int ret = libusb_control_transfer(device_handle, request_type, command, value, 0, retbuf, retbuflen, 5000);
     if(ret<0) {
-        fprintf(stderr,"Cannot transter CONTROL: %s(0x%d)\n",libusb_error_name(ret),ret);
+        fprintf(stderr,"Cannot transfer CONTROL: %s(0x%d)\n",libusb_error_name(ret),ret);
         return STATUS_DEVICE_CONFIGURATION_FAILED;
     }
     return STATUS_SUCCESS;
