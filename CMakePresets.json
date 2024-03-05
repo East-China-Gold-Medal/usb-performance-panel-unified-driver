@@ -29,7 +29,8 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "BUILD_WINUSB_PROGRAM": true,
-                "NVIDIA_PLEASE": true
+                "NVIDIA_PLEASE": true,
+                "CONTROL_METHOD": "Console"
             }
         },
         {
@@ -43,7 +44,8 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "BUILD_LIBUSB_PROGRAM": true,
-                "NVIDIA_PLEASE": true
+                "NVIDIA_PLEASE": true,
+                "CONTROL_METHOD": "Console"
             }
         },
         {

@@ -116,7 +116,6 @@ if(${BUILD_USER_MODE_DRIVER})
 elseif(${BUILD_LIBUSB_PROGRAM})
     message ("Building user-mode libusb program.")
     set(PLATFORM_SOURCES
-        entry.c
         platform/libusb.c
     )
     if(WIN32)
@@ -136,7 +135,6 @@ elseif(${BUILD_LIBUSB_PROGRAM})
 elseif(${BUILD_WINUSB_PROGRAM})
     message ("Building user-mode WinUSB program.")
     set(PLATFORM_SOURCES
-        entry.c
         platform/winusb.c
         platform/windows_eventtimer.c
     )
@@ -159,8 +157,9 @@ if(${BUILD_USER_MODE_DRIVER})
         message (FATAL_ERROR "Windows DDK Not installed!")
     endif()
 
+    set(CMAKE_MFC_FLAG 1)
     include_directories ("${WINDOWS_10_SDK_PATH}/Include/wdf/umdf/2.0")
-    link_libraries ("ntdll.lib" "ucrt.lib" "wpprecorderum.lib")
+    link_libraries ("ntdll.lib" "ucrt.lib" "wpprecorderum.lib" "comctl32.lib")
     add_compile_options (
         "/DWIN32_LEAN_AND_MEAN=1"               # Enable "clean" Windows header
         "/D_WIN32_WINNT=0x0603"                 # UMDF 2 requires Windows "Blue" 8.1 or later
@@ -248,7 +247,7 @@ if(${BUILD_USER_MODE_DRIVER})
     )
     include_directories (${CMAKE_CURRENT_BINARY_DIR})
     include_directories ("${WINDOWS_10_SDK_PATH}/include/${WINDOWS_10_SDK_VERSION}/")
-    add_library (UsbPerformancePanelUmdf2 SHARED ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
+    add_library (UsbPerformancePanelUmdf2 SHARED ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES} control/control_windows.rc control/control_windows.cpp)
     add_dependencies(UsbPerformancePanelUmdf2 GenerateTmhFile)
     # If there isn't signing cert, create one.
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/platform/UsbPerformancePanelUmdf2TestCert.cer)
@@ -302,6 +301,19 @@ else()
     add_executable (usb-performance-panel-unified-driver ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
 endif()
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+# Select control method.
+if(${BUILD_USER_MODE_DRIVER})
+
+else()
+    set(CONTROL_METHOD "Console" CACHE STRING "Control method of user-mode applications")
+    if(${CONTROL_METHOD} MATCHES "Console")
+        message ("Building console application")
+        target_sources(usb-performance-panel-unified-driver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/control/console_entry.c)
+    else()
+        message (FATAL_ERROR "Unknown control method!")
+    endif()
+endif()
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
     set_property(GLOBAL PROPERTY C_STANDARD 11)
