@@ -157,7 +157,6 @@ if(${BUILD_USER_MODE_DRIVER})
         message (FATAL_ERROR "Windows DDK Not installed!")
     endif()
 
-    set(CMAKE_MFC_FLAG 1)
     include_directories ("${WINDOWS_10_SDK_PATH}/Include/wdf/umdf/2.0")
     link_libraries ("ntdll.lib" "ucrt.lib" "wpprecorderum.lib" "comctl32.lib")
     add_compile_options (
@@ -296,23 +295,29 @@ if(${BUILD_USER_MODE_DRIVER})
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
-
-else()
-    add_executable (usb-performance-panel-unified-driver ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
 endif()
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-# Select control method.
-if(${BUILD_USER_MODE_DRIVER})
+set(CONTROL_METHOD "Console" CACHE STRING "Control method of user-mode applications")
 
+if(${CONTROL_METHOD} MATCHES "Console")
+    message ("Building console application")
+    add_executable (usb-performance-panel-unified-driver ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
+    target_sources(usb-performance-panel-unified-driver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/control/console_entry.c)
+elseif(${CONTROL_METHOD} MATCHES "MFC")
+    set(CMAKE_MFC_FLAG 2)
+    add_executable (usb-performance-panel-unified-driver WIN32 ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
+    target_compile_definitions(usb-performance-panel-unified-driver PUBLIC -D_AFXDLL)
+    target_link_options(usb-performance-panel-unified-driver PRIVATE "/entry:wWinMainCRTStartup")
+    target_sources(usb-performance-panel-unified-driver PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/about_dialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/adjust_dialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/control_panel.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/control_panel.rc
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/control_panel_dialog.cpp
+    )
 else()
-    set(CONTROL_METHOD "Console" CACHE STRING "Control method of user-mode applications")
-    if(${CONTROL_METHOD} MATCHES "Console")
-        message ("Building console application")
-        target_sources(usb-performance-panel-unified-driver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/control/console_entry.c)
-    else()
-        message (FATAL_ERROR "Unknown control method!")
-    endif()
+    message (FATAL_ERROR "Unknown control method!")
 endif()
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

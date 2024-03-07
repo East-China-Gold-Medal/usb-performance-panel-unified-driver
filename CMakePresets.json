@@ -30,7 +30,7 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "BUILD_WINUSB_PROGRAM": true,
                 "NVIDIA_PLEASE": true,
-                "CONTROL_METHOD": "Console"
+                "CONTROL_METHOD": "MFC"
             }
         },
         {
@@ -45,7 +45,7 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "BUILD_LIBUSB_PROGRAM": true,
                 "NVIDIA_PLEASE": true,
-                "CONTROL_METHOD": "Console"
+                "CONTROL_METHOD": "MFC"
             }
         },
         {

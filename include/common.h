@@ -4,6 +4,7 @@
     SPDX-License-Identifier: WTFPL
 
 */
+
 #ifndef ENTRY_H
 #define ENTRY_H
 
@@ -13,6 +14,15 @@
 #define IN
 #define OUT
 #define OPTIONAL
+
+#ifdef __cplusplus
+#define EXTERN_C_START extern "C" {
+#define EXTERN_C_END }
+
+#else
+#define EXTERN_C_START
+#define EXTERN_C_END
+#endif
 
 // Loop interval, in ms.
 #define LOOP_INTERVAL_MS 1000

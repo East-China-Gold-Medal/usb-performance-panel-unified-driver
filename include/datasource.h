@@ -10,6 +10,8 @@
 
 #include <common.h>
 
+EXTERN_C_START
+
 // Data source collection callback function prototype.
 typedef uint8_t(*data_source_collection_callback_t)(void);
 
@@ -27,5 +29,7 @@ status_t initialize_data_source_binding(IN uint8_t total_channel_count);
 
 // Send usage to device.
 status_t send_usage(uint8_t channel, uint8_t calibrated_value);
+
+EXTERN_C_END
 
 #endif

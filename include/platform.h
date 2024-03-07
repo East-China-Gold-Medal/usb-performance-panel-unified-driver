@@ -9,6 +9,8 @@
 
 #include <common.h>
 
+EXTERN_C_START
+
 // Opens target MCU.
 status_t open_device(void);
 
@@ -25,5 +27,7 @@ status_t transfer_control(IN host_operation_command_t command, IN uint16_t value
 
 // Enter platform-specific loop that calls main_loop_callback every period of time.
 status_t enter_loop(void);
+
+EXTERN_C_END
 
 #endif
