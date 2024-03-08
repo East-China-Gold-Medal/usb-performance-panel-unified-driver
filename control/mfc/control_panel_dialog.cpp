@@ -10,11 +10,17 @@
 #include "control_panel.h"
 #include "control_panel_dialog.h"
 #include "afxdialogex.h"
+#include "about_dialog.h"
+#include "adjust_dialog.h"
 
 // For modern UI.
 #pragma comment(linker,"\"/manifestdependency:type='win32' \
 name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
 processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+
+extern "C" {
+	extern uint8_t* calibration_values;
+}
 
 ControlPanelDialog::ControlPanelDialog(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_CONTROL_PANEL_DIALOG, pParent)
@@ -33,6 +39,8 @@ BEGIN_MESSAGE_MAP(ControlPanelDialog, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_NOTIFY(NM_RCLICK, IDC_PANEL_LIST, &ControlPanelDialog::OnPanelListRightClick)
+	ON_BN_CLICKED(IDC_ABOUT_BUTTON, &ControlPanelDialog::OnBnClickedAboutButton)
+	ON_COMMAND(ID_MENU01_CALIBRATE, &ControlPanelDialog::OnMenu01Calibrate)
 END_MESSAGE_MAP()
 
 BOOL ControlPanelDialog::OnInitDialog()
@@ -56,7 +64,8 @@ BOOL ControlPanelDialog::OnInitDialog()
 	for (int i = 0; i < channel_count; ++i) {
 		_stprintf_s(Buffer, 128, _T("%d"), i + 1);
 		m_PanelList.InsertItem(i, Buffer);
-		m_PanelList.SetItemText(i, 1, Buffer);
+		m_PanelList.SetItemText(i, 1, get_source_binding_name((uint8_t)i));
+		_stprintf_s(Buffer, 128, _T("%d(0x%x)"), calibration_values[i], calibration_values[i]);
 		m_PanelList.SetItemText(i, 2, Buffer);
 	}
 	m_PanelList.ModifyStyle(0, LVS_SINGLESEL);
@@ -112,4 +121,25 @@ void ControlPanelDialog::OnPanelListRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 		popmenu->TrackPopupMenu(TPM_RIGHTBUTTON, pt.x, pt.y, this);
 	}
 	*pResult = 0;
+}
+
+void ControlPanelDialog::OnBnClickedAboutButton()
+{
+	AboutDialog about;
+	about.DoModal();
+}
+
+void ControlPanelDialog::OnMenu01Calibrate()
+{
+	TCHAR Buffer[128];
+	POSITION p = m_PanelList.GetFirstSelectedItemPosition();
+	if (!p) {
+		return;
+	}
+	uint8_t index = m_PanelList.GetNextSelectedItem(p);
+	AdjustDialog dlg(index, this);
+	dlg.DoModal();
+	_stprintf_s(Buffer, 128, _T("%d(0x%x)"), calibration_values[index], calibration_values[index]);
+	m_PanelList.SetItemText(index, 2, Buffer);
+
 }

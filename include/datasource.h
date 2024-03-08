@@ -34,7 +34,7 @@ status_t send_usage(IN uint8_t channel, IN uint8_t calibrated_value);
 const char_t* get_source_binding_name(IN uint8_t channel);
 
 // Get all supported source binding names.
-void get_all_source_binding_names(OUT const char* binding_names, OUT size_t binding_name_count);
+status_t iterate_binding_names(OUT char_t* binding_name_buf, IN size_t binding_name_buf_char_count, IN int index);
 
 // Set a channel to a platform-defined source binding, classified by binding name.
 status_t set_channel_source_binding(IN uint8_t channel, IN const char_t* binding_name);

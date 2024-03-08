@@ -152,6 +152,9 @@ VOID UsbPerformancePanelEvtDriverContextCleanup(_In_ WDFOBJECT DriverObject)
     if (Timer != NULL) {
         WdfTimerStop(Timer, TRUE);
     }
+    for (int i = 0; i < channel_count; i++) {
+        send_usage(i, 0);
+    }
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
     WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER)DriverObject));
 }

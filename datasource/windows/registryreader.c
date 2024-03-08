@@ -42,8 +42,79 @@ extern uint8_t nvidia_gpu_found;
 extern uint8_t data_source_nvidia_gpu_utility(void);
 extern uint8_t data_source_nvidia_gpu_temperature(void);
 #endif
+extern data_source_collection_callback_t* data_source_callbacks;
+extern uint8_t* calibration_values;
 
 static HKEY registry_key;
+
+static inline data_source_collection_callback_t name_string_to_callback(IN const char_t* name)
+{
+    if (!_tcscmp(name, data_source_names[DATA_SOURCE_CALIBRATION])) {
+        return data_source_calibration;
+    }
+
+    if (!_tcscmp(name, data_source_names[DATA_SOURCE_CPU_UTILITY])) {
+        return data_source_cpu_utility;
+    }
+
+    if (!_tcscmp(name, data_source_names[DATA_SOURCE_GPU_UTILITY])) {
+#ifdef NVIDIA_PLEASE
+        if (nvidia_gpu_found) {
+            return data_source_nvidia_gpu_utility;
+        }
+#endif
+        return NULL;
+    }
+
+    if (!_tcscmp(name, data_source_names[DATA_SOURCE_GPU_TEMPERATURE])) {
+#ifdef NVIDIA_PLEASE
+        if (nvidia_gpu_found) {
+            return data_source_nvidia_gpu_temperature;
+        }
+#endif
+        return NULL;
+    }
+
+    if (!_tcscmp(name, data_source_names[DATA_SOURCE_RAM_UTILITY])) {
+        return data_source_ram_utility;
+    }
+
+    return NULL;
+}
+
+static inline const char_t* callback_to_name_string(IN const data_source_collection_callback_t callback)
+{
+
+    if (callback == data_source_calibration) {
+        return data_source_names[DATA_SOURCE_CALIBRATION];
+    }
+
+    if (callback == data_source_cpu_utility) {
+        return data_source_names[DATA_SOURCE_CPU_UTILITY];
+    }
+
+#ifdef NVIDIA_PLEASE
+    if (callback == data_source_nvidia_gpu_utility) {
+        return data_source_names[DATA_SOURCE_GPU_UTILITY];
+    }
+#endif
+
+#ifdef NVIDIA_PLEASE
+    if (callback == data_source_nvidia_gpu_temperature) {
+        return data_source_names[DATA_SOURCE_GPU_TEMPERATURE];
+    }
+#endif
+
+    if (callback == data_source_nvidia_gpu_temperature) {
+        return data_source_names[DATA_SOURCE_GPU_TEMPERATURE];
+    }
+
+    if (callback == data_source_ram_utility) {
+        return data_source_names[DATA_SOURCE_RAM_UTILITY];
+    }
+
+    return data_source_names[DATA_SOURCE_UNALLOCATED];
+}
 
 // Get bound data from platform registration.
 status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_callback_t *callback, OUT uint8_t *calibration_val)
@@ -79,43 +150,8 @@ status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_ca
             return STATUS_INVALID_CONFIGURATION;
         }
     }
-
-    if (!_tcscmp(key_value_buffer, data_source_names[DATA_SOURCE_CALIBRATION])) {
-        *callback = data_source_calibration;
-        goto data_source_finished;
-    }
-
-    if (!_tcscmp(key_value_buffer, data_source_names[DATA_SOURCE_CPU_UTILITY])) {
-        *callback = data_source_cpu_utility;
-        goto data_source_finished;
-    }
-
-    if (!_tcscmp(key_value_buffer, data_source_names[DATA_SOURCE_GPU_UTILITY])) {
-        *callback = NULL;
-#ifdef NVIDIA_PLEASE
-        if (nvidia_gpu_found) {
-            *callback = data_source_nvidia_gpu_utility;
-        }
-#endif
-        goto data_source_finished;
-    }
-
-    if (!_tcscmp(key_value_buffer, data_source_names[DATA_SOURCE_GPU_TEMPERATURE])) {
-        *callback = NULL;
-#ifdef NVIDIA_PLEASE
-        if (nvidia_gpu_found) {
-            *callback = data_source_nvidia_gpu_temperature;
-        }
-#endif
-        goto data_source_finished;
-    }
-
-    if (!_tcscmp(key_value_buffer, data_source_names[DATA_SOURCE_RAM_UTILITY])) {
-        *callback = data_source_ram_utility;
-        goto data_source_finished;
-    }
-
-data_source_finished:
+    *callback = name_string_to_callback(key_value_buffer);
+    
     _stprintf_s(key_name_buffer, 32, __TEXT("Calibration%d"), channel);
 
     // Calibration value defaults to 0x80 (128) to prevent voltmeter damage.
@@ -138,16 +174,59 @@ data_source_finished:
 }
 
 // Get current binding name of a channel.
-const char_t* get_source_binding_name(IN uint8_t channel);
+const char_t* get_source_binding_name(IN uint8_t channel)
+{
+    return callback_to_name_string(data_source_callbacks[channel]);
+}
 
 // Get all supported source binding names.
-void get_all_source_binding_names(OUT const char* binding_names, OUT size_t binding_name_count);
+status_t iterate_binding_names(OUT char_t* binding_name_buf, IN size_t binding_name_buf_char_count, IN int index)
+{
+    if (index >= sizeof(data_source_names) / sizeof(char_t*)) {
+        return STATUS_OVERFLOW;
+    }
+    if (_tcslen(data_source_names[index]) >= binding_name_buf_char_count) {
+        return STATUS_BUFFER_TOO_SMALL;
+    }
+
+    _tcscpy_s(binding_name_buf, binding_name_buf_char_count, data_source_names[index]);
+    return STATUS_SUCCESS;
+}
 
 // Set a channel to a platform-defined source binding, classified by binding name.
-status_t set_channel_source_binding(IN uint8_t channel, IN const char_t* binding_name);
+status_t set_channel_source_binding(IN uint8_t channel, IN const char_t* binding_name)
+{
+    char_t key_name_buffer[32];
+    status_t status;
+    DWORD key_value_buffer_size = (DWORD)_tcslen(binding_name) * sizeof(char_t);
+
+    _stprintf_s(key_name_buffer, 32, __TEXT("Channel%d"), channel);
+    status = RegSetValueEx(registry_key, key_name_buffer, 0, REG_SZ, (BYTE*)binding_name, key_value_buffer_size);
+    if (status != ERROR_SUCCESS) {
+        return STATUS_INVALID_CONFIGURATION;
+    }
+    return STATUS_SUCCESS;
+}
 
 // Clear a channel binding, mainly for calibration purposes.
-status_t clear_binding(IN uint8_t channel);
+status_t clear_binding(IN uint8_t channel)
+{
+    data_source_callbacks[channel] = NULL;
+    return STATUS_SUCCESS;
+}
 
 // Set the calibration value of a given channel.
-status_t set_channel_calibration(IN uint8_t channel, IN uint8_t calibration);
+status_t set_channel_calibration(IN uint8_t channel, IN uint8_t calibration)
+{
+    LSTATUS status;
+    char_t key_name_buffer[32];
+    DWORD key_calibration = calibration;
+
+    _stprintf_s(key_name_buffer, 32, __TEXT("Calibration%d"), channel);
+    calibration_values[channel] = calibration;
+    status = RegSetValueEx(registry_key, key_name_buffer, 0, REG_DWORD, (VOID*)&key_calibration, sizeof(uint32_t));
+    if (status != ERROR_SUCCESS) {
+        return STATUS_INVALID_CONFIGURATION;
+    }
+    return STATUS_SUCCESS;
+}

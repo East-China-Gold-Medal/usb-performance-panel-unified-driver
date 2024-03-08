@@ -83,7 +83,7 @@ uint8_t data_source_calibration(void)
     return 0xFF;
 }
 
-status_t send_usage(uint8_t channel, uint8_t calibrated_value)
+status_t send_usage(IN uint8_t channel, IN uint8_t calibrated_value)
 {
     return transfer_control(COMMAND_SET_USAGE, ((uint16_t)channel)<<8 | calibrated_value, NULL, 0);
 }

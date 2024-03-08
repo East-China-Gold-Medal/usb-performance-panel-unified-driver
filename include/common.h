@@ -51,11 +51,14 @@ typedef const enum {
 // Return statuses.
 typedef enum {
     STATUS_SUCCESS = 0,
+    STATUS_HAS_NEXT = 1,
     STATUS_DEVICE_NOT_FOUND = -1,
     STATUS_DEVICE_CONFIGURATION_FAILED = -2,
     STATUS_TRANSFER_FAILED = -3,
     STATUS_INVALID_CONFIGURATION = -4,
-    STATUS_DRIVER_INITIALIZATION_FAILED = -5
+    STATUS_DRIVER_INITIALIZATION_FAILED = -5,
+    STATUS_BUFFER_TOO_SMALL = -6,
+    STATUS_OVERFLOW = -7
 } status_t;
 
 // Platform native char type.

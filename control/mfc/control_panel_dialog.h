@@ -30,6 +30,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnPanelListRightClick(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnBnClickedAboutButton();
+	afx_msg void OnMenu01Calibrate();
 };
 
 EXTERN_C_START
