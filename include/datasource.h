@@ -28,7 +28,22 @@ status_t get_bound_data_source(IN uint8_t channel, OUT data_source_collection_ca
 status_t initialize_data_source_binding(IN uint8_t total_channel_count);
 
 // Send usage to device.
-status_t send_usage(uint8_t channel, uint8_t calibrated_value);
+status_t send_usage(IN uint8_t channel, IN uint8_t calibrated_value);
+
+// Get current binding name of a channel.
+const char_t* get_source_binding_name(IN uint8_t channel);
+
+// Get all supported source binding names.
+void get_all_source_binding_names(OUT const char* binding_names, OUT size_t binding_name_count);
+
+// Set a channel to a platform-defined source binding, classified by binding name.
+status_t set_channel_source_binding(IN uint8_t channel, IN const char_t* binding_name);
+
+// Clear a channel binding, mainly for calibration purposes.
+status_t clear_binding(IN uint8_t channel);
+
+// Set the calibration value of a given channel.
+status_t set_channel_calibration(IN uint8_t channel, IN uint8_t calibration);
 
 EXTERN_C_END
 

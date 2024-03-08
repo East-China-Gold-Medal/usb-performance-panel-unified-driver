@@ -58,4 +58,12 @@ typedef enum {
     STATUS_DRIVER_INITIALIZATION_FAILED = -5
 } status_t;
 
+// Platform native char type.
+// TCHAR on Windows, char on other.
+#ifdef _WIN32
+#include <tchar.h>
+    typedef TCHAR char_t;
+#else
+    typedef char char_t;
+#endif
 #endif

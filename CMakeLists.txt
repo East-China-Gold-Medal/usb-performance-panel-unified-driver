@@ -19,7 +19,12 @@ set(DATA_COLLECTION_SOURCES datasource/collector.c)
 # Data collection selection.
 if(WIN32)
     message ("Use Windows data collection method.")
+
     add_definitions ("-DUNICODE" "-D_UNICODE")
+    if (MSVC)
+        add_compile_options(/utf-8)
+    endif()
+
     list (APPEND DATA_COLLECTION_SOURCES
         datasource/windows/cpu.c
         datasource/windows/ram.c
