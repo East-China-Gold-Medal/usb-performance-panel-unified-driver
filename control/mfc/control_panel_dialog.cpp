@@ -109,7 +109,6 @@ HCURSOR ControlPanelDialog::OnQueryDragIcon()
 
 void ControlPanelDialog::OnPanelListRightClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	if (pNMListView->iItem != -1) {
 		CPoint pt;
@@ -136,7 +135,7 @@ void ControlPanelDialog::OnMenu01Calibrate()
 	if (!p) {
 		return;
 	}
-	uint8_t index = m_PanelList.GetNextSelectedItem(p);
+	uint8_t index = (uint8_t)m_PanelList.GetNextSelectedItem(p);
 	AdjustDialog dlg(index, this);
 	dlg.DoModal();
 	_stprintf_s(Buffer, 128, _T("%d(0x%x)"), calibration_values[index], calibration_values[index]);

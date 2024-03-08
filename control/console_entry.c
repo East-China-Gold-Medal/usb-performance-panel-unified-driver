@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <platform.h>
 #include <datasource.h>
+#include <stdlib.h>
 
 uint8_t channel_count;
 
@@ -20,5 +21,7 @@ int main(void)
 	status = initialize_data_source_binding(channel_count);
 	enter_loop();
 	close_device();
+	free(data_source_callbacks);
+	free(calibration_values);
 	return 0;
 }

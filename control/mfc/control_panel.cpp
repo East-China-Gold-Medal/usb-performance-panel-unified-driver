@@ -27,6 +27,8 @@ END_MESSAGE_MAP()
 
 extern "C" {
 	extern status_t main_loop_callback(void);
+	extern uint8_t* calibration_values;
+	extern data_source_collection_callback_t* data_source_callbacks;
 }
 
 static void timer_proc(HWND unused1, UINT unused2, UINT_PTR unused3, DWORD unused4)
@@ -82,9 +84,12 @@ BOOL CcontrolPanelApp::InitInstance()
 	ControlBarCleanUp();
 #endif
 	KillTimer(NULL,0);
-	for (int i = 0; i < channel_count; i++) {
+	for (uint8_t i = 0; i < channel_count; i++) {
 		send_usage(i, 0);
 	}
 	close_device();
+	// These are allocated in C!
+	free(data_source_callbacks);
+	free(calibration_values);
 	return FALSE;
 }

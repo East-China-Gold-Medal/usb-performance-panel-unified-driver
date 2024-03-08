@@ -53,13 +53,16 @@ END_MESSAGE_MAP()
 
 void AdjustDialog::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
+	UNREFERENCED_PARAMETER(nSBCode);
+	UNREFERENCED_PARAMETER(nPos);
+	UNREFERENCED_PARAMETER(pScrollBar);
 	UpdateData(TRUE);
 	CSliderCtrl* pSlidCtrl = (CSliderCtrl*)GetDlgItem(IDC_SLIDER1);
 	int val = 1 * pSlidCtrl->GetPos();
 	TCHAR str[8]{};
 	_stprintf_s(str, 8, __TEXT("%d"), val);
 	m_ValueText.SetWindowText(str);
-	send_usage(selectedChannelId, val);
-	set_channel_calibration(selectedChannelId, val);
+	send_usage((uint8_t)selectedChannelId, (uint8_t)val);
+	set_channel_calibration((uint8_t)selectedChannelId, (uint8_t)val);
 	UpdateData(FALSE);
 }

@@ -200,6 +200,7 @@ status_t set_channel_source_binding(IN uint8_t channel, IN const char_t* binding
     status_t status;
     DWORD key_value_buffer_size = (DWORD)_tcslen(binding_name) * sizeof(char_t);
 
+    data_source_callbacks[channel] = name_string_to_callback(binding_name);
     _stprintf_s(key_name_buffer, 32, __TEXT("Channel%d"), channel);
     status = RegSetValueEx(registry_key, key_name_buffer, 0, REG_SZ, (BYTE*)binding_name, key_value_buffer_size);
     if (status != ERROR_SUCCESS) {
