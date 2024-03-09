@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AboutDialog</class>
+ <widget class="QDialog" name="AboutDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>379</width>
+    <height>249</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>About this program</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../res/resources.qrc">
+    <normaloff>:/logo</normaloff>:/logo</iconset>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>40</y>
+     <width>128</width>
+     <height>128</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="../res/resources.qrc">:/logo</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>0</y>
+     <width>201</width>
+     <height>201</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>A USB Performance Panel by East China Gold Medal team.
+East China Gold Medal is an interest group from Hangzhou Dianzi University Information Engineering College (HDUIEC).
+Developers:
+Igniculus Fu(@fhh200000)
+Avanter Chu(@Avanter98)
+Vanilla Chen(@Vanilla-Cbc)</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>200</y>
+     <width>88</width>
+     <height>34</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>OK</string>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

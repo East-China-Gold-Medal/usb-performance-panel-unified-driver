@@ -310,6 +310,7 @@ if(${CONTROL_METHOD} MATCHES "Console")
     add_executable (usb-performance-panel-unified-driver ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
     target_sources(usb-performance-panel-unified-driver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/control/console_entry.c)
 elseif(${CONTROL_METHOD} MATCHES "MFC")
+    message ("Building MFC application")
     set(CMAKE_MFC_FLAG 2)
     add_executable (usb-performance-panel-unified-driver WIN32 ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
     target_compile_definitions(usb-performance-panel-unified-driver PUBLIC -D_AFXDLL)
@@ -320,6 +321,33 @@ elseif(${CONTROL_METHOD} MATCHES "MFC")
         ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/control_panel.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/control_panel.rc
         ${CMAKE_CURRENT_SOURCE_DIR}/control/mfc/control_panel_dialog.cpp
+    )
+elseif(${CONTROL_METHOD} MATCHES "Qt")
+    message ("Building Qt application")
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    add_executable (usb-performance-panel-unified-driver ${DATA_COLLECTION_SOURCES} ${PLATFORM_SOURCES})
+    find_package (Qt6 COMPONENTS Widgets)
+    if(${Qt6_FOUND})
+        message ("Using Qt 6")
+        target_include_directories (usb-performance-panel-unified-driver PUBLIC ${Qt6Widgets_INCLUDE_DIRS})
+        target_link_libraries (usb-performance-panel-unified-driver Qt6::Widgets)
+    else()
+        message ("Qt 6 not found, using Qt 5")
+        find_package(Qt5 COMPONENTS Gui REQUIRED)
+        target_include_directories (usb-performance-panel-unified-driver PUBLIC ${Qt5Widgets_INCLUDE_DIRS})
+        target_link_libraries (usb-performance-panel-unified-driver Qt5::Widgets)
+    endif()
+    target_sources (usb-performance-panel-unified-driver PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/qt/qt_entry.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/res/resources.qrc
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/qt/control_panel_dialog.ui
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/qt/control_panel_dialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/qt/about_dialog.ui
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/qt/about_dialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/qt/adjust_dialog.ui
+        ${CMAKE_CURRENT_SOURCE_DIR}/control/qt/adjust_dialog.cpp
     )
 else()
     message (FATAL_ERROR "Unknown control method!")

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ControlPanelDialog</class>
+ <widget class="QDialog" name="ControlPanelDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>503</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../res/resources.qrc">
+    <normaloff>:/logo</normaloff>:/logo</iconset>
+  </property>
+  <widget class="QPushButton" name="button_about">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>450</y>
+     <width>88</width>
+     <height>34</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>About......</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_summary">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>261</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QTableWidget" name="panel_table">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>60</y>
+     <width>261</width>
+     <height>381</height>
+    </rect>
+   </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAsNeeded</enum>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="sizeAdjustPolicy">
+    <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+   </property>
+   <property name="editTriggers">
+    <set>QAbstractItemView::NoEditTriggers</set>
+   </property>
+   <property name="selectionMode">
+    <enum>QAbstractItemView::SingleSelection</enum>
+   </property>
+   <property name="selectionBehavior">
+    <enum>QAbstractItemView::SelectRows</enum>
+   </property>
+   <property name="rowCount">
+    <number>3</number>
+   </property>
+   <property name="columnCount">
+    <number>3</number>
+   </property>
+   <attribute name="horizontalHeaderMinimumSectionSize">
+    <number>0</number>
+   </attribute>
+   <attribute name="verticalHeaderVisible">
+    <bool>false</bool>
+   </attribute>
+   <row/>
+   <row/>
+   <row/>
+   <column/>
+   <column/>
+   <column/>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
