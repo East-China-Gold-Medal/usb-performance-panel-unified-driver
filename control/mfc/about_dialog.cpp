@@ -1,7 +1,7 @@
 ﻿/* @file about_dialog.cpp
 
-	Implementation of "About" dialog.
-	SPDX-License-Identifier: WTFPL
+    Implementation of "About" dialog.
+    SPDX-License-Identifier: WTFPL
 
 */
 
@@ -12,7 +12,7 @@
 IMPLEMENT_DYNAMIC(AboutDialog, CDialogEx)
 
 AboutDialog::AboutDialog(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_ABOUT_DIALOG, pParent)
+    : CDialogEx(IDD_ABOUT_DIALOG, pParent)
 {
 
 }
@@ -23,7 +23,10 @@ AboutDialog::~AboutDialog()
 
 void AboutDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX);
+    CDialogEx::DoDataExchange(pDX);
+    DDX_Control(pDX, ID_ECGM_LOGO, m_img);
+    HICON Icon = (HICON)LoadImage(AfxGetApp()->m_hInstance, MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 96, 96, LR_DEFAULTCOLOR);
+    m_img.SetIcon(Icon);
 }
 
 

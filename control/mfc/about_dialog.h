@@ -1,7 +1,7 @@
 ﻿/* @file about_dialog.h
 
-	Definition of "About" dialog.
-	SPDX-License-Identifier: WTFPL
+    Definition of "About" dialog.
+    SPDX-License-Identifier: WTFPL
 
 */
 
@@ -10,18 +10,18 @@
 
 class AboutDialog : public CDialogEx
 {
-	DECLARE_DYNAMIC(AboutDialog)
+    DECLARE_DYNAMIC(AboutDialog)
 
 public:
-	AboutDialog(CWnd* pParent = nullptr);
-	virtual ~AboutDialog();
+    AboutDialog(CWnd* pParent = nullptr);
+    virtual ~AboutDialog();
 
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_ABOUT_DIALOG };
+    enum { IDD = IDD_ABOUT_DIALOG };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);
-
-	DECLARE_MESSAGE_MAP()
+    virtual void DoDataExchange(CDataExchange* pDX);
+    CStatic m_img;
+    DECLARE_MESSAGE_MAP()
 };

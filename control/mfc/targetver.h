@@ -1,7 +1,7 @@
 ﻿/* @file targetver.h
 
-	Contains version of SDK.
-	SPDX-License-Identifier: WTFPL
+    Contains version of SDK.
+    SPDX-License-Identifier: WTFPL
 
 */
 

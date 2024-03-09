@@ -190,7 +190,7 @@ status_t iterate_binding_names(OUT char_t* binding_name_buf, IN size_t binding_n
     }
 
     _tcscpy_s(binding_name_buf, binding_name_buf_char_count, data_source_names[index]);
-    return STATUS_SUCCESS;
+    return (index == (sizeof(data_source_names) / sizeof(char_t*) - 1))?STATUS_SUCCESS: STATUS_HAS_NEXT;
 }
 
 // Set a channel to a platform-defined source binding, classified by binding name.

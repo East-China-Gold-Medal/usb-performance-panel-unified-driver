@@ -1,7 +1,7 @@
 ﻿/* @file control_panel_dialog.h
 
-	Definition of "Control Panel" dialog.
-	SPDX-License-Identifier: WTFPL
+    Definition of "Control Panel" dialog.
+    SPDX-License-Identifier: WTFPL
 
 */
 
@@ -10,28 +10,33 @@
 class ControlPanelDialog : public CDialogEx
 {
 public:
-	ControlPanelDialog(CWnd* pParent = nullptr);
+    ControlPanelDialog(CWnd* pParent = nullptr);
 
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_MFCTEST_DIALOG };
+    enum { IDD = IDD_MFCTEST_DIALOG };
 #endif
 
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);
+    protected:
+    virtual void DoDataExchange(CDataExchange* pDX);
 
 protected:
-	HICON m_hIcon;
-	CListCtrl m_PanelList;
-	CStatic m_OverallDesc;
+    HICON m_hIcon;
+    CListCtrl m_PanelList;
+    CStatic m_OverallDesc;
+    NOTIFYICONDATA NotifyIcon;
 
-	virtual BOOL OnInitDialog();
-	afx_msg void OnPaint();
-	afx_msg HCURSOR OnQueryDragIcon();
-	DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnPanelListRightClick(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnBnClickedAboutButton();
-	afx_msg void OnMenu01Calibrate();
+    virtual BOOL OnInitDialog();
+    afx_msg void OnPaint();
+    afx_msg HCURSOR OnQueryDragIcon();
+    afx_msg void OnPanelListRightClick(NMHDR* pNMHDR, LRESULT* pResult);
+    afx_msg void OnPanelListDblClick(NMHDR* pNMHDR, LRESULT* pResult);
+    afx_msg void OnBnClickedAboutButton();
+    afx_msg void OnMenu01Calibrate();
+    afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+    afx_msg LRESULT OnNotifyIcon(WPARAM wParam, LPARAM IParam);
+    afx_msg void OnClose();
+    void MinimizeToTray();
+    DECLARE_MESSAGE_MAP()
 };
 
 EXTERN_C_START

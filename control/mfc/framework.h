@@ -1,7 +1,7 @@
 ﻿/* @file framework.h
 
-	Generic header for MFC control panel.
-	SPDX-License-Identifier: WTFPL
+    Generic header for MFC control panel.
+    SPDX-License-Identifier: WTFPL
 
 */
 
@@ -17,6 +17,9 @@
 
 // 关闭 MFC 的一些常见且经常可放心忽略的隐藏警告消息
 #define _AFX_ALL_WARNINGS
+#ifdef _MSC_VER
+#pragma warning (disable:26454)
+#endif
 
 #include <afxwin.h>         // MFC 核心组件和标准组件
 #include <afxext.h>         // MFC 扩展

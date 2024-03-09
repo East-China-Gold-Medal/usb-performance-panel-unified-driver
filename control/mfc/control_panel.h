@@ -1,7 +1,7 @@
 ﻿/* @file control_panel.h
 
-	Main entry class of control panel application.
-	SPDX-License-Identifier: WTFPL
+    Main entry class of control panel application.
+    SPDX-License-Identifier: WTFPL
 
 */
 
@@ -16,9 +16,9 @@ public:
     CcontrolPanelApp();
 
 public:
-	virtual BOOL InitInstance();
+    virtual BOOL InitInstance();
 
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 };
 
 extern CcontrolPanelApp theApp;

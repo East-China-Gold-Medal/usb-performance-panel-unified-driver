@@ -1,7 +1,7 @@
 ﻿/* @file entry.c
 
-	Implementation of all user-mode programs' entry point.
-	SPDX-License-Identifier: WTFPL
+    Implementation of all user-mode programs' entry point.
+    SPDX-License-Identifier: WTFPL
 
 */
 
@@ -15,13 +15,13 @@ uint8_t channel_count;
 
 int main(void)
 {
-	status_t status = STATUS_SUCCESS;
-	open_device();
-	channel_count = get_channel_count();
-	status = initialize_data_source_binding(channel_count);
-	enter_loop();
-	close_device();
-	free(data_source_callbacks);
-	free(calibration_values);
-	return 0;
+    status_t status = STATUS_SUCCESS;
+    open_device();
+    channel_count = get_channel_count();
+    status = initialize_data_source_binding(channel_count);
+    enter_loop();
+    close_device();
+    free(data_source_callbacks);
+    free(calibration_values);
+    return 0;
 }

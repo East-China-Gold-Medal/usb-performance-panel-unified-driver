@@ -27,6 +27,9 @@
 // Loop interval, in ms.
 #define LOOP_INTERVAL_MS 1000
 
+// Maximum channel name length, in word.
+#define MAX_CHANNEL_NAME_LENGTH 32
+
 // Currently-used USB VID.
 #define PANEL_VID 0x0cbc
 
