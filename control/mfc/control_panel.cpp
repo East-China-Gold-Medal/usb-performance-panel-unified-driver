@@ -56,7 +56,9 @@ CcontrolPanelApp theApp;
 BOOL CcontrolPanelApp::InitInstance()
 {
     CWinApp::InitInstance();
-
+#if WINVER >= _WIN32_WINNT_VISTA
+    SetProcessDPIAware();
+#endif
     CShellManager *pShellManager = new CShellManager;
 
     CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));

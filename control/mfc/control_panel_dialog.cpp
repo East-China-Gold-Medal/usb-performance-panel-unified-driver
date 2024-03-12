@@ -119,7 +119,7 @@ void ControlPanelDialog::OnPanelListRightClick(NMHDR* pNMHDR, LRESULT* pResult)
     NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
     if (pNMListView->iItem != -1) {
         CPoint pt;
-        GetCursorPos(&pt);
+        GetPhysicalCursorPos(&pt);
         CMenu menu;
         menu.LoadMenu(ID_LIST_RIGHTCLICK_MENU);
         CMenu* popmenu;

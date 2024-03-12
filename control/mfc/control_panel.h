@@ -14,8 +14,6 @@ class CcontrolPanelApp : public CWinApp
 {
 public:
     CcontrolPanelApp();
-
-public:
     virtual BOOL InitInstance();
 
     DECLARE_MESSAGE_MAP()

@@ -23,5 +23,6 @@ public:
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);
     CStatic m_img;
+    CStatic m_desc;
     DECLARE_MESSAGE_MAP()
 };

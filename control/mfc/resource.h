@@ -18,6 +18,7 @@
 #define IDC_CHANNEL_COMBO               1005
 #define IDC_ADJUST_HINT                 1006
 #define ID_ECGM_LOGO                    1007
+#define IDC_DESC                        1008
 #define ID_CALIBRATE_MENU               32772
 #define ID_MENU01_CALIBRATE             32773
 
